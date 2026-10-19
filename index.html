@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050507" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Finanças Casal" />
+  <title>Planilha Automatizada do Casal — Controle de Gastos & Divisão</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <!-- SheetJS para exportação real de planilha Excel (.xlsx) com abas separadas -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+  <!-- CABEÇALHO FLUTUANTE ESTILO PIERRE FINANCE -->
+  <header class="app-header">
+    <div class="brand-area">
+      <div class="brand-icon" title="Assistente Financeiro do Casal">
+        <svg width="22" height="22" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 48 L18 14 L28 24 L36 24 L46 14 L50 48 Z" />
+          <path d="M16 31 L48 31" />
+          <polygon points="20,31 29,31 27,38 19,37" fill="currentColor" />
+          <polygon points="35,31 44,31 45,37 37,38" fill="currentColor" />
+          <path d="M29 42 Q32 45 35 42" />
+        </svg>
+      </div>
+      <div class="brand-title">
+        <h1>
+          <span>Finanças do Casal</span>
+          <span class="pastel-name-pill yellow" style="font-size:10.5px;">IA + iPhone 4G/5G</span>
+        </h1>
+        <p>Controle automatizado de gastos, divisão flexível e abas por categoria</p>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <div class="month-picker-group" title="Selecionar Mês de Referência">
+        <button type="button" id="btnPrevMonth" title="Mês anterior">◀</button>
+        <input type="month" id="monthSelector" />
+        <button type="button" id="btnNextMonth" title="Próximo mês">▶</button>
+      </div>
+
+      <button type="button" class="btn" id="btnCopyFixed" title="Copiar gastos marcados como Fixos do mês anterior para este mês">
+        🔁 Copiar Fixos
+      </button>
+
+      <button type="button" class="btn btn-primary" id="btnExportExcel" title="Baixar planilha Excel (.xlsx) com todas as abas separadas">
+        📥 Baixar Excel (.xlsx)
+      </button>
+
+      <button type="button" class="btn" id="btnBackupJson" title="Salvar ou restaurar backup dos dados">
+        💾 Backup
+      </button>
+
+      <button type="button" class="btn" id="btnToggleTheme" title="Alternar Modo Escuro / Claro">
+        🌗 Tema
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="main-container">
+
+    <!-- 1. CONFIGURAÇÃO DO CASAL & REGRA PADRÃO DE DIVISÃO -->
+    <section class="couple-config-bar" aria-label="Configuração do Casal">
+      <!-- Pessoa 1 -->
+      <div class="person-card p1">
+        <div class="person-avatar" id="avatarP1">A</div>
+        <div class="person-inputs">
+          <div class="row-inline">
+            <label for="inputNameP1">Seu Nome:</label>
+            <input type="text" id="inputNameP1" class="input-inline" value="André" placeholder="Seu nome" />
+          </div>
+          <div class="row-inline">
+            <label for="inputIncomeP1">Sua Renda (R$):</label>
+            <input type="number" id="inputIncomeP1" class="input-inline" value="6000" step="100" min="0" title="Usado para calcular divisão proporcional à renda" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Pessoa 2 -->
+      <div class="person-card p2">
+        <div class="person-avatar" id="avatarP2">E</div>
+        <div class="person-inputs">
+          <div class="row-inline">
+            <label for="inputNameP2">Sua Esposa:</label>
+            <input type="text" id="inputNameP2" class="input-inline" value="Esposa" placeholder="Nome dela" />
+          </div>
+          <div class="row-inline">
+            <label for="inputIncomeP2">Renda Dela (R$):</label>
+            <input type="number" id="inputIncomeP2" class="input-inline" value="4000" step="100" min="0" title="Usado para calcular divisão proporcional à renda" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Regra Geral de Divisão do Casal -->
+      <div class="default-split-box">
+        <div class="default-split-header">
+          <span>⚖️ Regra de Divisão Padrão do Casal</span>
+          <span id="defaultSplitBadge" class="kpi-badge badge-p1">50% / 50%</span>
+        </div>
+        <div class="default-split-controls">
+          <select id="selectGlobalSplitMode">
+            <option value="50_50">Meio a Meio (50% / 50%)</option>
+            <option value="proportional">Proporcional à Renda de Cada Um</option>
+            <option value="custom">Porcentagem Fixa Personalizada (%)</option>
+          </select>
+          <div class="custom-global-split" id="customGlobalSplitWrap" style="display: none;">
+            <span id="lblCustomGlobalP1">André:</span>
+            <input type="number" id="inputGlobalCustomPctP1" min="0" max="100" step="1" value="60" />
+            <span>% | <span id="lblCustomGlobalP2">Esposa</span>: <strong id="txtGlobalCustomPctP2">40%</strong></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VITRINE MODERNA ESTILO PIERRE FINANCE (ÚLTIMAS TRANSAÇÕES + CHAT IA + GRÁFICO SEMANAL NEON) -->
+    <section class="pierre-showcase-grid" aria-label="Visão Rápida e Inteligência Artificial">
+      <!-- Coluna 1: Últimas Transações em Cards Flutuantes -->
+      <div class="pierre-col-panel">
+        <div class="pierre-section-label">
+          <span>🏛️ Últimas transações</span>
+          <span id="pierreRecentBadge" class="pastel-name-pill p1">Ao vivo</span>
+        </div>
+        <div class="pierre-tx-list" id="pierreRecentTransactionsList">
+          <!-- Renderizado dinamicamente via app.js -->
+        </div>
+      </div>
+
+      <!-- Coluna 2: Card Central "Converse com o Agente IA" -->
+      <div class="pierre-col-panel pierre-center-card">
+        <div class="pierre-mascot-wrap">
+          <svg class="pierre-cat-svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 50 L18 14 L27 24 L37 24 L46 14 L50 50" />
+            <path d="M15 31 L49 31" />
+            <polygon points="18,31 29,31 27,38 17,37" fill="currentColor" />
+            <polygon points="35,31 46,31 47,37 37,38" fill="currentColor" />
+            <path d="M29 42 Q32 45 35 42" />
+          </svg>
+          <div class="pierre-greeting-title" id="pierreGreetingTitle">Olá, André & Esposa</div>
+          <div class="pierre-greeting-sub">Como eu posso te ajudar hoje? Digite um gasto ou passe o Apple Pay no iPhone.</div>
+        </div>
+
+        <div class="pierre-quick-chips">
+          <button type="button" class="pierre-chip-btn" id="btnPierreGoCardTab">
+            💳 Gastos com cartão (iPhone)
+          </button>
+          <button type="button" class="pierre-chip-btn" id="btnPierreSyncNow">
+            🔄 Contas conectadas (4G/5G)
+          </button>
+        </div>
+
+        <form id="formPierreQuickChat" class="pierre-chat-box">
+          <input
+            type="text"
+            id="inputPierreQuickChat"
+            class="pierre-chat-input"
+            placeholder="Converse com a IA (ex: Delivery iFood R$ 42,00 hoje)..."
+          />
+          <div class="pierre-chat-bottom">
+            <span class="pierre-chat-Hint" id="pierreQuickChatFeedback">✨ Lança e divide automaticamente na planilha</span>
+            <button type="submit" class="pierre-send-circle" title="Enviar gasto para a IA">↑</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Coluna 3: Gráfico de Barras Verde-Neon por Dia da Semana -->
+      <div class="pierre-col-panel">
+        <div class="pierre-chart-header">
+          <div class="pierre-chart-sub">
+            <span>Gastos por dia da semana</span>
+            <span>›</span>
+          </div>
+          <div class="pierre-chart-big-val">
+            <span id="pierreWeeklyTotalValue">R$ 0,00</span>
+            <span class="pierre-neon-delta" id="pierreWeeklyDeltaBadge">↑ Ativo</span>
+          </div>
+        </div>
+
+        <div class="pierre-bars-stage" id="pierreWeeklyBarsStage">
+          <!-- Barras Seg a Dom geradas via app.js -->
+        </div>
+
+        <div class="pierre-section-label" style="padding-top:4px; border-top:1px solid var(--border-color);">
+          <span>✨ Insights financeiros</span>
+          <span id="pierreTopCategoryInsight" style="color:var(--text-main); font-size:12px;">Calculando...</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. CARDS DE RESUMO E ACERTO DE CONTAS AUTOMÁTICO -->
+    <section class="kpi-grid" aria-label="Resumo Financeiro do Mês">
+      <!-- Card 1: Total do Mês -->
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span>Total Gasto no Mês</span>
+          <span id="kpiCountItems" class="kpi-badge" style="background: var(--bg-subtle); color: var(--text-secondary);">0 itens</span>
+        </div>
+        <div class="kpi-value" id="kpiTotalMonth">R$ 0,00</div>
+        <div class="kpi-sub">
+          <div style="display:flex; justify-content:space-between;">
+            <span id="kpiTotalIncomeRatio">Comprometimento da renda: 0%</span>
+          </div>
+          <div class="split-progress-bar" title="Proporção da responsabilidade no mês">
+            <div class="split-progress-fill-p1" id="barMonthSplitP1" style="width: 50%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Parte Pessoa 1 -->
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span id="kpiTitleP1">Parte de André</span>
+          <span class="kpi-badge badge-p1" id="kpiPctP1">50% do total</span>
+        </div>
+        <div class="kpi-value" style="color: var(--p1-color);" id="kpiFairShareP1">R$ 0,00</div>
+        <div class="kpi-sub">
+          <span>Pagou do próprio bolso: <strong id="kpiPaidByP1">R$ 0,00</strong></span>
+          <span id="kpiDiffP1">Saldo individual: R$ 0,00</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Parte Pessoa 2 -->
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span id="kpiTitleP2">Parte de Esposa</span>
+          <span class="kpi-badge badge-p2" id="kpiPctP2">50% do total</span>
+        </div>
+        <div class="kpi-value" style="color: var(--p2-color);" id="kpiFairShareP2">R$ 0,00</div>
+        <div class="kpi-sub">
+          <span>Pagou do próprio bolso: <strong id="kpiPaidByP2">R$ 0,00</strong></span>
+          <span id="kpiDiffP2">Saldo individual: R$ 0,00</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Acerto de Contas (Quem deve para quem) -->
+      <div class="kpi-card settlement-card">
+        <div class="kpi-top">
+          <span>🤝 Acerto de Contas do Mês</span>
+          <button type="button" class="btn btn-sm" id="btnOpenSettlementModal" style="padding:2px 8px; font-size:11px;">Ver Detalhes</button>
+        </div>
+        <div class="kpi-value" id="kpiSettlementHeadline" style="font-size: 19px; color: var(--primary);">
+          Tudo Quitado!
+        </div>
+        <div class="kpi-sub" id="kpiSettlementSub">
+          Ninguém deve nada para ninguém neste mês.
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. LINHA DE LANÇAMENTO RÁPIDO (ALIMENTA TODAS AS ABAS AUTOMATICAMENTE) -->
+    <section class="quick-entry-card" aria-label="Novo Lançamento">
+      <div class="quick-entry-title">
+        <span>➕ Lançar Novo Gasto na Planilha <small style="font-weight:400; color:var(--text-muted);">(alimenta automaticamente a aba da categoria escolhida e o acerto do casal)</small></span>
+        <span id="quickEntryPreviewSplit" style="font-size:12px; color:var(--primary); font-weight:700;"></span>
+      </div>
+
+      <form id="formQuickEntry" class="quick-entry-form">
+        <div class="form-field">
+          <label for="entryDate">Data</label>
+          <input type="date" id="entryDate" required />
+        </div>
+
+        <div class="form-field">
+          <label for="entryDesc">Descrição do Gasto</label>
+          <input type="text" id="entryDesc" placeholder="Ex: Supermercado, Jantar, Uber, Luz..." required />
+        </div>
+
+        <div class="form-field">
+          <label for="entryCategory">Planilha / Categoria</label>
+          <select id="entryCategory" required></select>
+        </div>
+
+        <div class="form-field">
+          <label for="entryAmount">Valor Total (R$)</label>
+          <input type="number" id="entryAmount" placeholder="0,00" step="0.01" min="0.01" required />
+        </div>
+
+        <div class="form-field">
+          <label for="entryPaidBy">Quem Pagou?</label>
+          <select id="entryPaidBy">
+            <option value="p1" id="optPaidByP1">André pagou</option>
+            <option value="p2" id="optPaidByP2">Esposa pagou</option>
+            <option value="split" id="optPaidBySplit">Já pagamos separado na hora</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="entrySplitMode">Como Dividir este Gasto?</label>
+          <select id="entrySplitMode">
+            <option value="default">Padrão do Casal</option>
+            <option value="category">Seguir Regra da Categoria</option>
+            <option value="50_50">50% / 50% (Meio a Meio)</option>
+            <option value="proportional">Proporcional à Renda</option>
+            <option value="custom_pct">Escolher % Personalizada...</option>
+            <option value="custom_val">Escolher Valor R$ Exato...</option>
+            <option value="100_p1" id="optSplit100P1">100% André (Individual)</option>
+            <option value="100_p2" id="optSplit100P2">100% Esposa (Individual)</option>
+          </select>
+        </div>
+
+        <!-- Campo dinâmico quando escolhe % personalizada ou Valor exato -->
+        <div class="form-field" id="entryCustomSplitField" style="display: none;">
+          <label id="lblEntryCustomSplit" for="entryCustomInput">% de André</label>
+          <div class="custom-pct-group">
+            <input type="number" id="entryCustomInput" value="50" min="0" step="0.01" />
+            <span id="unitEntryCustomSplit" style="font-size:12px; font-weight:700;">%</span>
+          </div>
+        </div>
+
+        <div class="form-field" style="justify-content:center;">
+          <label style="display:flex; align-items:center; gap:5px; cursor:pointer; padding-bottom:8px; font-size:12px;">
+            <input type="checkbox" id="entryIsFixed" />
+            Gasto Fixo
+          </label>
+        </div>
+
+        <div class="form-field">
+          <button type="submit" class="btn btn-primary" style="height: 36px; justify-content:center;">
+            + Adicionar
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 4. ÁREA DE TRABALHO DA PLANILHA COM ABAS SEPARADAS -->
+    <section class="sheet-workspace">
+      <!-- Barra de Abas (Geral + Resumo por Categoria + Lazer + Alimentação + Transporte + etc.) -->
+      <div class="sheet-tabs-bar" id="sheetTabsBar" role="tablist">
+        <!-- Renderizado dinamicamente via JS -->
+      </div>
+
+      <!-- VISÃO 1: PLANILHA DE LANÇAMENTOS (Geral ou Filtrada pela Aba da Categoria) -->
+      <div id="viewSpreadsheet" style="display: block;">
+        <!-- Banner exclusivo quando estiver dentro de uma aba de categoria (ex: Lazer, Alimentação, Transporte) -->
+        <div id="categoryBanner" class="category-sheet-banner" style="display: none;">
+          <div class="cat-banner-info">
+            <div class="cat-banner-icon" id="catBannerIcon">🍔</div>
+            <div>
+              <h2 id="catBannerTitle" style="font-size: 16px; font-weight: 800;">Planilha de Alimentação</h2>
+              <p id="catBannerDesc" style="font-size: 12px; color: var(--text-secondary);">
+                Todos os gastos desta categoria aparecem automaticamente aqui.
+              </p>
+            </div>
+          </div>
+
+          <div class="cat-banner-stats">
+            <div class="cat-stat-item">
+              <span>Total da Categoria</span>
+              <strong id="catStatTotal">R$ 0,00</strong>
+            </div>
+            <div class="cat-stat-item">
+              <span id="catStatLblP1">Parte André</span>
+              <strong id="catStatP1" style="color: var(--p1-color);">R$ 0,00</strong>
+            </div>
+            <div class="cat-stat-item">
+              <span id="catStatLblP2">Parte Esposa</span>
+              <strong id="catStatP2" style="color: var(--p2-color);">R$ 0,00</strong>
+            </div>
+            <div class="cat-stat-item">
+              <span>Regra Padrão da Aba</span>
+              <select id="catDefaultSplitSelect" class="filter-select" style="font-weight: 600;"></select>
+            </div>
+            <div class="cat-stat-item">
+              <span>Meta Mensal (R$)</span>
+              <input type="number" id="catBudgetInput" class="filter-select" style="width: 110px; font-weight: 700;" step="50" min="0" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de filtros e busca da planilha -->
+        <div class="sheet-toolbar">
+          <div class="sheet-toolbar-left">
+            <input type="search" id="searchSheet" class="search-input" placeholder="🔍 Filtrar descrição na planilha..." />
+            <select id="filterPayer" class="filter-select">
+              <option value="all">Todos os Pagadores</option>
+              <option value="p1" id="optFilterPayerP1">Pago por André</option>
+              <option value="p2" id="optFilterPayerP2">Pago por Esposa</option>
+              <option value="split">Já Dividido na Hora</option>
+            </select>
+            <select id="filterSplitType" class="filter-select">
+              <option value="all">Todas as Regras de Divisão</option>
+              <option value="shared">Apenas Gastos Compartilhados</option>
+              <option value="100_p1" id="optFilter100P1">Apenas 100% Individual André</option>
+              <option value="100_p2" id="optFilter100P2">Apenas 100% Individual Esposa</option>
+            </select>
+          </div>
+
+          <div class="sheet-toolbar-right">
+            <span style="font-size:12px; color:var(--text-secondary);">
+              💡 <strong>Dica:</strong> Clique em qualquer célula da tabela abaixo para editar direto na planilha!
+            </span>
+            <button type="button" class="btn btn-sm" id="btnLoadDemoData" title="Carregar exemplo de gastos do casal">
+              ✨ Carregar Exemplo
+            </button>
+            <button type="button" class="btn btn-sm" id="btnClearMonth" style="color: var(--danger);">
+              🗑️ Limpar Mês
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabela Principal Estilo Excel -->
+        <div class="spreadsheet-container">
+          <table class="spreadsheet-table" id="mainSpreadsheetTable">
+            <thead>
+              <tr>
+                <th class="row-num">#</th>
+                <th style="width: 115px;">Data</th>
+                <th style="min-width: 200px;">Descrição do Gasto</th>
+                <th style="width: 165px;">Categoria (Aba)</th>
+                <th style="width: 70px; text-align:center;">Fixo?</th>
+                <th style="width: 130px; text-align:right;">Valor Total (R$)</th>
+                <th style="width: 155px;">Quem Pagou?</th>
+                <th style="width: 185px;">Regra de Divisão</th>
+                <th style="width: 95px; text-align:center;" title="Porcentagem que cabe à Pessoa 1">% Divisão</th>
+                <th style="width: 135px; text-align:right;" id="thShareP1">Parte André (R$)</th>
+                <th style="width: 135px; text-align:right;" id="thShareP2">Parte Esposa (R$)</th>
+                <th style="width: 160px;">Saldo do Item</th>
+                <th style="width: 50px; text-align:center;">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="spreadsheetBody">
+              <!-- Linhas geradas via JS -->
+            </tbody>
+            <tfoot id="spreadsheetFoot">
+              <!-- Totais gerados via JS -->
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- VISÃO 2: DASHBOARD & RESUMO DE TODAS AS PLANILHAS DE CATEGORIAS -->
+      <div id="viewDashboard" class="dashboard-view" style="display: none;">
+        <div class="dashboard-grid-2">
+          <!-- Painel 1: Resumo Consolidado por Aba / Categoria -->
+          <div class="dash-panel">
+            <h3>
+              <span>📂 Resumo Consolidado por Planilha de Categoria</span>
+              <span style="font-size:12px; font-weight:500; color:var(--text-secondary);">Clique no nome da categoria para abrir a planilha dela</span>
+            </h3>
+            <div class="spreadsheet-container">
+              <table class="spreadsheet-table">
+                <thead>
+                  <tr>
+                    <th>Planilha / Categoria</th>
+                    <th style="text-align:center;">Qtd</th>
+                    <th style="text-align:right;">Total Gasto</th>
+                    <th style="text-align:right;" id="dashThP1">Parte André</th>
+                    <th style="text-align:right;" id="dashThP2">Parte Esposa</th>
+                    <th style="text-align:right;">Meta Mensal</th>
+                    <th style="width:140px;">Uso da Meta</th>
+                    <th>Regra Padrão da Categoria</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboardCategoriesBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Painel 2: Simulador Comparativo de Divisão do Casal -->
+          <div class="dash-panel">
+            <h3>
+              <span>🧮 Simulador: E se dividíssemos de outro jeito?</span>
+            </h3>
+            <p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:14px;">
+              Veja quanto cada um pagaria nos gastos compartilhados deste mês em diferentes modelos de divisão:
+            </p>
+            <div id="simulatorComparisonBox" style="display:flex; flex-direction:column; gap:12px;">
+              <!-- Renderizado via JS -->
+            </div>
+
+            <hr style="border:none; border-top:1px solid var(--border-color); margin: 18px 0;" />
+
+            <h3>🤝 Resumo Detalhado do Acerto de Contas</h3>
+            <div id="dashSettlementExplain" class="settlement-explain-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISÃO 3: AGENTE DE IA & INTEGRAÇÃO AUTOMÁTICA COM CARTÃO / IPHONE (iOS) -->
+      <div id="viewAiAgent" class="dashboard-view" style="display: none;">
+        <div class="dashboard-grid-2">
+          <!-- Coluna Esquerda: Testador / Captura Instantânea da IA + Histórico de Capturas -->
+          <div style="display:flex; flex-direction:column; gap:18px;">
+            <div class="dash-panel" style="border-color: var(--primary); background: linear-gradient(180deg, var(--primary-light), var(--bg-surface));">
+              <h3>
+                <span>🤖 Agente de IA — Leitor Automático de Compras do Cartão</span>
+                <span class="kpi-badge badge-p1" id="aiConnectionBadge">IA Ativa</span>
+              </h3>
+              <p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:12px;">
+                Quando o seu iPhone (ou o da sua esposa) recebe uma compra do cartão/Apple Pay, ele envia a notificação para cá. A IA identifica a <strong>data</strong>, o <strong>valor</strong>, o <strong>estabelecimento</strong>, a <strong>aba da categoria</strong> (Alimentação, Lazer, Transporte, etc.), <strong>quem pagou</strong> e <strong>divide automaticamente</strong>!
+              </p>
+
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <label style="font-size:12px; font-weight:700; color:var(--text-main);">
+                  🧪 Testar Agora (Cole uma notificação do banco ou clique em um exemplo abaixo):
+                </label>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <button type="button" class="btn btn-sm btn-ai-sample" data-payer="p1" data-text="Compra aprovada no seu cartão Nubank de R$ 134,90 em IFOOD *RESTAURANTE em 19/10/2026 às 20:42">
+                    🍕 Exemplo Nubank (iFood R$ 134,90)
+                  </button>
+                  <button type="button" class="btn btn-sm btn-ai-sample" data-payer="p1" data-text="Apple Pay: R$ 280,00 em POSTO IPIRANGA em 18/10/2026 usando Cartão Final 1234">
+                    ⛽ Exemplo Apple Pay (Gasolina R$ 280)
+                  </button>
+                  <button type="button" class="btn btn-sm btn-ai-sample" data-payer="p2" data-text="Itaú: Compra aprovada R$ 195,50 em DROGA RAIA dia 17/10/2026 no cartão final 9876">
+                    💊 Exemplo Cartão Esposa (Farmácia R$ 195,50)
+                  </button>
+                  <button type="button" class="btn btn-sm btn-ai-sample" data-payer="p2" data-text="Passou R$ 240,00 no CINEMARK VIP dia 16/10/2026, dividir 50/50">
+                    🎬 Exemplo Lazer (Cinemark R$ 240)
+                  </button>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 145px 180px; gap:8px; margin-top:4px;">
+                  <input
+                    type="text"
+                    id="inputAiTestNotification"
+                    class="search-input"
+                    style="width:100%; background:var(--bg-surface); font-weight:500;"
+                    placeholder="Ex: Compra aprovada de R$ 89,90 em UBER *TRIP em 19/10/2026 no cartão final 1234..."
+                  />
+                  <input
+                    type="date"
+                    id="inputAiTestDate"
+                    class="filter-select"
+                    style="background:var(--bg-surface); font-weight:600;"
+                    title="Data da compra (se a notificação já tiver uma data no texto, a IA usa a data do texto automaticamente)"
+                  />
+                  <select id="selectAiTestPayer" class="filter-select" style="background:var(--bg-surface); font-weight:600;">
+                    <option value="auto">Detectar Pagador Pela IA</option>
+                    <option value="p1" id="optAiTestP1">Celular de André</option>
+                    <option value="p2" id="optAiTestP2">Celular de Esposa</option>
+                  </select>
+                </div>
+
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                  <button type="button" class="btn btn-primary" id="btnRunAiTest">
+                    ⚡ Processar Compra com IA e Lançar na Planilha
+                  </button>
+                  <span id="aiLastResultFeedback" style="font-size:12.5px; font-weight:700; color:var(--success);"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Regras Personalizadas do Casal para a IA -->
+            <div class="dash-panel">
+              <h3>⚙️ Configurar Inteligência do Casal (Cartões, Regras & API)</h3>
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:14px;">
+                <div class="form-field">
+                  <label id="lblCardDigitsP1" for="inputCardDigitsP1">Final do Cartão de André (4 dígitos)</label>
+                  <input type="text" id="inputCardDigitsP1" placeholder="Ex: 1234" maxlength="20" />
+                </div>
+                <div class="form-field">
+                  <label id="lblCardDigitsP2" for="inputCardDigitsP2">Final do Cartão da Esposa (4 dígitos)</label>
+                  <input type="text" id="inputCardDigitsP2" placeholder="Ex: 9876" maxlength="20" />
+                </div>
+                <div class="form-field">
+                  <label for="inputGeminiKey">Chave Gemini AI (Opcional - Google AI Studio)</label>
+                  <input type="password" id="inputGeminiKey" placeholder="AIzaSy... (vazio usa IA Local BR)" />
+                </div>
+              </div>
+
+              <h4 style="font-size:12.5px; font-weight:700; margin-bottom:8px; color:var(--text-secondary);">
+                📌 Regras Automáticas por Palavra-Chave (Ensine a IA como dividir estabelecimentos específicos):
+              </h4>
+              <div id="aiCustomRulesList" style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;"></div>
+
+              <div style="display:grid; grid-template-columns: 1.2fr 1fr 1fr 80px auto; gap:6px; align-items:end;">
+                <div class="form-field">
+                  <label>Se a compra contiver a palavra:</label>
+                  <input type="text" id="newRuleKeyword" placeholder="Ex: posto, salão, petz..." />
+                </div>
+                <div class="form-field">
+                  <label>Jogar na Aba:</label>
+                  <select id="newRuleCategory"></select>
+                </div>
+                <div class="form-field">
+                  <label>Dividir como:</label>
+                  <select id="newRuleSplitMode">
+                    <option value="category">Regra da Categoria</option>
+                    <option value="50_50">50% / 50%</option>
+                    <option value="proportional">Proporcional à Renda</option>
+                    <option value="custom_pct">% Personalizada</option>
+                    <option value="100_p1">100% Pessoa 1</option>
+                    <option value="100_p2">100% Pessoa 2</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label>% P1:</label>
+                  <input type="number" id="newRuleCustomPct" value="70" min="0" max="100" />
+                </div>
+                <button type="button" class="btn btn-primary" id="btnAddAiRule" style="height:35px;">+ Regra</button>
+              </div>
+            </div>
+
+            <!-- Log de Compras Capturadas pela IA -->
+            <div class="dash-panel">
+              <h3>📜 Últimas Compras Capturadas Automaticamente pelo Agente de IA</h3>
+              <div id="aiActivityLogBox" style="display:flex; flex-direction:column; gap:8px; font-size:12.5px;"></div>
+            </div>
+          </div>
+
+          <!-- Coluna Direita: Guia Passo a Passo para iPhone (iOS Atalhos / Apple Pay) -->
+          <div class="dash-panel">
+            <h3>📱 Como Conectar seu iPhone (e o da sua Esposa) em 2 Minutos</h3>
+            <p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:12px;">
+              No iPhone, o próprio aplicativo nativo <strong>Atalhos (Shortcuts)</strong> da Apple possui um gatilho automático que dispara no exato segundo em que você passa o cartão!
+            </p>
+
+            <div class="settlement-explain-list" style="margin-bottom:14px; border-color:var(--primary);">
+              <div style="font-size:11.5px; font-weight:700; color:var(--primary); text-transform:uppercase;">
+                ☁️ URL do Webhook em Nuvem (Funciona no 4G/5G na Rua e no Wi-Fi!):
+              </div>
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:4px;">
+                <code id="webhookUrlDisplay" style="padding:6px 10px; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:6px; font-weight:700; color:var(--primary); flex:1; word-break:break-all;">
+                  https://ntfy.sh/casal_gastos_andre_esposa_8492a7
+                </code>
+                <button type="button" class="btn btn-sm btn-primary" id="btnCopyWebhookUrl">📋 Copiar URL</button>
+                <button type="button" class="btn btn-sm" id="btnSyncCloudNow" title="Buscar compras feitas na rua no 4G/5G agora">🔄 Sincronizar Nuvem</button>
+              </div>
+              <div style="font-size:11.5px; color:var(--text-secondary); margin-top:4px;">
+                ✅ <strong>Por que usar essa URL `https://ntfy.sh/...`?</strong> Porque ela funciona na internet inteira (4G/5G na rua) e <strong>guarda suas compras na nuvem mesmo se o seu PC estiver desligado</strong>! Assim que você abrir a planilha no PC, tudo cai automaticamente.
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:14px; font-size:13px; line-height:1.55;">
+              <div style="padding:12px; background:var(--bg-subtle); border-radius:8px; border:1px solid var(--border-color);">
+                <strong style="color:var(--primary); display:block; margin-bottom:6px;">
+                  🚀 Opção 1: 100% Automático ao passar o Cartão no Apple Pay (Funciona no 4G/5G e Wi-Fi!)
+                </strong>
+                <ol style="padding-left:18px; display:flex; flex-direction:column; gap:5px;">
+                  <li>Abra o app <strong>Atalhos (Shortcuts)</strong> no seu iPhone e toque na aba <strong>Automação</strong> (no rodapé).</li>
+                  <li>Toque no <strong>+</strong> (canto superior direito) e escolha o gatilho <strong>Transação</strong> (Transaction).</li>
+                  <li>Marque <strong>"Executar Imediatamente"</strong> (Run Immediately) para não precisar nem confirmar na tela e selecione os seus cartões.</li>
+                  <li>Escolha <strong>Nova Automação em Branco</strong> e adicione a ação <strong>"Obter Conteúdo do URL"</strong> (Get Contents of URL).</li>
+                  <li>Cole a <strong>URL da Nuvem</strong> acima (<code>https://ntfy.sh/casal_gastos_andre_esposa_8492a7</code>), mude o Método para <strong>POST</strong> e no Corpo da Solicitação (JSON) deixe apenas os <strong>3 campos</strong> (a data já é gravada automaticamente pela nuvem na hora da compra!):
+                    <ul style="padding-left:16px; margin-top:4px; color:var(--text-secondary);">
+                      <li><code>estabelecimento</code> ➔ selecione <em>Entrada do Atalho (💳 Comerciante)</em></li>
+                      <li><code>valor</code> ➔ selecione <em>Entrada do Atalho (💳 Valor)</em></li>
+                      <li><code>pagador</code> ➔ digite <code>p1</code> no seu iPhone (e <code>p2</code> no iPhone da sua esposa)</li>
+                    </ul>
+                  </li>
+                </ol>
+              </div>
+
+              <div style="padding:12px; background:var(--bg-subtle); border-radius:8px; border:1px solid var(--border-color);">
+                <strong style="color:var(--p1-color); display:block; margin-bottom:6px;">
+                  📲 Opção 2: Capturar Qualquer Notificação de Banco (Nubank, Itaú, Inter, Cartão Físico/Online)
+                </strong>
+                <p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:6px;">
+                  Quando fizer uma compra no cartão físico ou virtual e aparecer a notificação do banco na tela:
+                </p>
+                <ol style="padding-left:18px; display:flex; flex-direction:column; gap:5px;">
+                  <li>No app <strong>Atalhos</strong>, crie um atalho chamado <strong>"Lançar na Planilha"</strong> com 3 ações:
+                    <br/>1) <em>Capturar Tela (Take Screenshot)</em>
+                    <br/>2) <em>Extrair Texto da Imagem (Extract Text from Image)</em>
+                    <br/>3) <em>Obter Conteúdo do URL (POST)</em> para <code>https://ntfy.sh/casal_gastos_andre_esposa_8492a7</code> enviando os campos: <code>texto</code> (<em>Texto da Imagem</em>), <code>data</code> (<em>Data Atual</em>) e <code>pagador</code> = <code>p1</code> (ou <code>p2</code>).
+                  </li>
+                  <li>Vá em <strong>Ajustes do iPhone &gt; Acessibilidade &gt; Toque &gt; Tocar Atrás (Back Tap) &gt; Toque Duplo</strong> e selecione o atalho <strong>"Lançar na Planilha"</strong>.</li>
+                  <li>Pronto! Chegou notificação do banco na rua ou em casa? Deu 2 toques atrás do iPhone e a IA lê a data, o estabelecimento e o valor e lança na planilha!</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: DETALHAMENTO DO ACERTO DE CONTAS -->
+  <div class="modal-backdrop" id="modalSettlement">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>🤝 Detalhamento do Acerto de Contas do Mês</h3>
+        <button type="button" class="btn btn-sm" id="btnCloseSettlementModal">✕</button>
+      </div>
+      <div id="modalSettlementBody" class="settlement-explain-list"></div>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button type="button" class="btn btn-primary" id="btnCloseSettlementModal2">Entendi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NOVA CATEGORIA / ABA -->
+  <div class="modal-backdrop" id="modalNewCategory">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>➕ Criar Nova Aba de Categoria</h3>
+        <button type="button" class="btn btn-sm" id="btnCloseNewCatModal">✕</button>
+      </div>
+      <form id="formNewCategory" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="form-field">
+          <label for="newCatIcon">Ícone (Emoji)</label>
+          <input type="text" id="newCatIcon" value="🐾" maxlength="4" style="width:70px; font-size:18px; text-align:center;" required />
+        </div>
+        <div class="form-field">
+          <label for="newCatName">Nome da Categoria / Planilha</label>
+          <input type="text" id="newCatName" placeholder="Ex: Pets, Educação, Viagens, Investimentos..." required />
+        </div>
+        <div class="form-field">
+          <label for="newCatBudget">Meta de Orçamento Mensal (R$)</label>
+          <input type="number" id="newCatBudget" value="500" min="0" step="50" />
+        </div>
+        <div class="form-field">
+          <label for="newCatSplit">Regra de Divisão Padrão desta Categoria</label>
+          <select id="newCatSplit">
+            <option value="default">Seguir Padrão do Casal</option>
+            <option value="50_50">50% / 50% (Meio a Meio)</option>
+            <option value="proportional">Proporcional à Renda</option>
+            <option value="100_p1">100% Pessoa 1</option>
+            <option value="100_p2">100% Pessoa 2</option>
+          </select>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+          <button type="button" class="btn" id="btnCancelNewCat">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Criar Aba</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: BACKUP / IMPORTAR JSON -->
+  <div class="modal-backdrop" id="modalBackup">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>💾 Backup e Restauração de Dados</h3>
+        <button type="button" class="btn btn-sm" id="btnCloseBackupModal">✕</button>
+      </div>
+      <p style="font-size:13px; color:var(--text-secondary);">
+        Seus dados ficam salvos automaticamente no seu navegador. Você também pode baixar um arquivo de backup ou restaurar dados salvos anteriormente.
+      </p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button type="button" class="btn btn-primary" id="btnDownloadJson">⬇️ Baixar Arquivo de Backup (.json)</button>
+        <label class="btn" style="cursor:pointer;">
+          ⬆️ Restaurar Backup (.json)
+          <input type="file" id="inputUploadJson" accept=".json" style="display:none;" />
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

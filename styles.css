@@ -1,0 +1,1465 @@
+:root {
+  /* Paleta Pierre Finance — Deep OLED Dark Mode por Padrão */
+  --bg-body: #050507;
+  --bg-surface: #0d0d11;
+  --bg-elevated: #131319;
+  --bg-subtle: #111116;
+  --bg-hover: #1a1a22;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text-main: #ffffff;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+
+  /* Cores do Casal — Inspiradas nas Pílulas Pastel do Pierre (Galileu / Marie / Einstein) */
+  --p1-color: #93c5fd;
+  --p1-pill-bg: #93c5fd;
+  --p1-pill-text: #050507;
+  --p1-bg: rgba(147, 197, 253, 0.12);
+  --p1-border: rgba(147, 197, 253, 0.25);
+
+  --p2-color: #f9a8d4;
+  --p2-pill-bg: #f9a8d4;
+  --p2-pill-text: #050507;
+  --p2-bg: rgba(249, 168, 212, 0.12);
+  --p2-border: rgba(249, 168, 212, 0.25);
+
+  --couple-pill-yellow: #fde047;
+
+  /* Acento Neon Verde Pierre Finance */
+  --primary: #65ff3b;
+  --primary-hover: #4ce624;
+  --primary-light: rgba(101, 255, 59, 0.11);
+  --primary-text-on: #050507;
+
+  --success: #65ff3b;
+  --success-bg: rgba(101, 255, 59, 0.12);
+  --warning: #fde047;
+  --warning-bg: rgba(253, 224, 71, 0.12);
+  --danger: #ff4d6d;
+  --danger-bg: rgba(255, 77, 109, 0.14);
+
+  --radius-sm: 12px;
+  --radius-md: 20px;
+  --radius-lg: 26px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 18px 45px rgba(0, 0, 0, 0.65);
+}
+
+[data-theme="light"] {
+  --bg-body: #f4f5f7;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #f8fafc;
+  --bg-hover: #eef2f6;
+  --border-color: rgba(15, 23, 42, 0.09);
+  --border-strong: rgba(15, 23, 42, 0.18);
+  --text-main: #09090b;
+  --text-secondary: #52525b;
+  --text-muted: #a1a1aa;
+
+  --p1-color: #2563eb;
+  --p1-pill-bg: #bfdbfe;
+  --p1-pill-text: #1e3a8a;
+  --p1-bg: #eff6ff;
+  --p1-border: #bfdbfe;
+
+  --p2-color: #db2777;
+  --p2-pill-bg: #fbcfe8;
+  --p2-pill-text: #831843;
+  --p2-bg: #fdf2f8;
+  --p2-border: #fbcfe8;
+
+  --primary: #16a34a;
+  --primary-hover: #15803d;
+  --primary-light: #f0fdf4;
+  --primary-text-on: #ffffff;
+
+  --success: #16a34a;
+  --success-bg: #f0fdf4;
+  --warning: #d97706;
+  --warning-bg: #fffbeb;
+  --danger: #dc2626;
+  --danger-bg: #fef2f2;
+
+  --shadow-sm: 0 4px 16px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 12px 32px rgba(15, 23, 42, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-body);
+  background-image:
+    radial-gradient(circle at 18% 12%, rgba(147, 197, 253, 0.05) 0%, transparent 32%),
+    radial-gradient(circle at 82% 18%, rgba(101, 255, 59, 0.05) 0%, transparent 34%),
+    radial-gradient(circle at 50% 80%, rgba(249, 168, 212, 0.04) 0%, transparent 38%);
+  color: var(--text-main);
+  line-height: 1.45;
+  font-size: 14px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   HEADER FLUTUANTE ESTILO PÍLULA PIERRE FINANCE
+   ========================================================================== */
+.app-header {
+  max-width: 1480px;
+  width: calc(100% - 32px);
+  margin: 16px auto 6px;
+  background: rgba(15, 15, 20, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  padding: 10px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 12px;
+  z-index: 50;
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme="light"] .app-header {
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.brand-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-strong);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.brand-title h1 {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-title p {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.month-picker-group {
+  display: flex;
+  align-items: center;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  padding: 3px 6px;
+}
+
+.month-picker-group button {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 5px 9px;
+  cursor: pointer;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 11px;
+  transition: all 0.15s;
+}
+
+.month-picker-group button:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.month-picker-group input[type="month"] {
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 4px 6px;
+  outline: none;
+  cursor: pointer;
+  color-scheme: dark;
+}
+
+[data-theme="light"] .month-picker-group input[type="month"] {
+  color-scheme: light;
+}
+
+/* ==========================================================================
+   BOTÕES PÍLULA (PIERRE WHITE PILL & DARK OUTLINE PILL)
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 15px;
+  border-radius: var(--radius-pill);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border-strong);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-main);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+[data-theme="light"] .btn {
+  background: #ffffff;
+}
+
+.btn:hover {
+  background: var(--bg-hover);
+  border-color: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+}
+
+/* Botão Branco Pílula (idêntico ao "Entrar" do Pierre) */
+.btn-primary {
+  background: #ffffff;
+  color: #050507;
+  border-color: #ffffff;
+  font-weight: 700;
+}
+
+[data-theme="light"] .btn-primary {
+  background: #09090b;
+  color: #ffffff;
+  border-color: #09090b;
+}
+
+.btn-primary:hover {
+  background: #65ff3b;
+  color: #050507;
+  border-color: #65ff3b;
+  box-shadow: 0 0 20px rgba(101, 255, 59, 0.35);
+}
+
+.btn-excel {
+  background: rgba(101, 255, 59, 0.12);
+  color: var(--primary);
+  border-color: rgba(101, 255, 59, 0.35);
+  font-weight: 700;
+}
+
+.btn-excel:hover {
+  background: var(--primary);
+  color: #050507;
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(101, 255, 59, 0.3);
+}
+
+.btn-sm {
+  padding: 5px 12px;
+  font-size: 11.5px;
+}
+
+.btn-danger-ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 4px 8px;
+}
+
+.btn-danger-ghost:hover {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+/* Container Principal */
+.main-container {
+  max-width: 1480px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 12px 20px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  flex: 1;
+}
+
+/* ==========================================================================
+   VITRINE INTERATIVA ESTILO PIERRE FINANCE (3 COLUNAS: TRANSAÇÕES, CHAT IA, GRÁFICO)
+   ========================================================================== */
+.pierre-showcase-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+@media (max-width: 1150px) {
+  .pierre-showcase-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pierre-col-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.pierre-section-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: -0.01em;
+}
+
+/* Coluna 1: Últimas transações (Cards flutuantes escalonados igual ao print) */
+.pierre-tx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  justify-content: center;
+}
+
+.pierre-tx-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.pierre-tx-card:nth-child(2) {
+  margin-left: 22px;
+}
+
+.pierre-tx-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+.pierre-tx-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pierre-tx-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 800;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.pierre-tx-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pierre-tx-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pierre-tx-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pierre-tx-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.pierre-tx-amount {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Etiquetas Pílula Pastel (Estilo "Marie", "Galileu", "Eistein" do print) */
+.pastel-name-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.pastel-name-pill.p1 {
+  background: var(--p1-pill-bg);
+  color: var(--p1-pill-text);
+}
+
+.pastel-name-pill.p2 {
+  background: var(--p2-pill-bg);
+  color: var(--p2-pill-text);
+}
+
+.pastel-name-pill.yellow {
+  background: var(--couple-pill-yellow);
+  color: #050507;
+}
+
+/* Coluna 2: Card Central "Converse com o Pierre / IA do Casal" */
+.pierre-center-card {
+  background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.04) 0%, var(--bg-surface) 70%);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  padding: 22px 20px 18px;
+}
+
+.pierre-mascot-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.pierre-cat-svg {
+  width: 54px;
+  height: 54px;
+  color: var(--text-main);
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.12));
+}
+
+.pierre-greeting-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.pierre-greeting-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  max-width: 240px;
+  line-height: 1.35;
+}
+
+.pierre-quick-chips {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin: 6px 0;
+}
+
+.pierre-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pierre-chip-btn:hover {
+  border-color: var(--border-strong);
+  color: var(--text-main);
+  background: var(--bg-hover);
+}
+
+.pierre-chat-box {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pierre-chat-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.pierre-chat-input::placeholder {
+  color: var(--text-muted);
+}
+
+.pierre-chat-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pierre-chat-Hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pierre-send-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: #ffffff;
+  color: #050507;
+  font-weight: 800;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pierre-send-circle:hover {
+  background: var(--primary);
+  transform: scale(1.06);
+}
+
+/* Coluna 3: Card "Gastos da Semana / Por Dia" com Barras Verdes Neon igual ao print */
+.pierre-chart-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pierre-chart-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pierre-chart-big-val {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.pierre-neon-delta {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.pierre-bars-stage {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  height: 126px;
+  padding: 14px 6px 4px;
+  position: relative;
+}
+
+.pierre-day-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  height: 100%;
+}
+
+.pierre-bar-pill {
+  width: 16px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(180deg, #80ff57 0%, #46e01c 100%);
+  box-shadow: 0 0 16px rgba(101, 255, 59, 0.35);
+  transition: height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 14px;
+}
+
+.pierre-bar-empty {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(255, 255, 255, 0.22);
+  background: transparent;
+}
+
+[data-theme="light"] .pierre-bar-empty {
+  border-color: rgba(15, 23, 42, 0.25);
+}
+
+.pierre-day-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   BARRA DE CONFIGURAÇÃO DO CASAL
+   ========================================================================== */
+.couple-config-bar {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.person-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+}
+
+.person-card.p1 {
+  border-left: 3px solid var(--p1-color);
+}
+
+.person-card.p2 {
+  border-left: 3px solid var(--p2-color);
+}
+
+.person-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.person-card.p1 .person-avatar {
+  background: var(--p1-pill-bg);
+  color: var(--p1-pill-text);
+}
+
+.person-card.p2 .person-avatar {
+  background: var(--p2-pill-bg);
+  color: var(--p2-pill-text);
+}
+
+.person-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+}
+
+.person-inputs .row-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.person-inputs label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.input-inline {
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-main);
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  width: 100%;
+  transition: all 0.15s;
+}
+
+[data-theme="light"] .input-inline {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.input-inline:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--bg-surface);
+}
+
+.default-split-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 11px 14px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.default-split-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.default-split-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.default-split-controls select {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.custom-global-split {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.custom-global-split input {
+  width: 58px;
+  padding: 5px 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 700;
+  background: var(--bg-surface);
+  color: var(--text-main);
+}
+
+/* ==========================================================================
+   CARDS DE RESUMO & ACERTO DE CONTAS
+   ========================================================================== */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 1150px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kpi-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  transition: border-color 0.2s;
+}
+
+.kpi-card:hover {
+  border-color: var(--border-strong);
+}
+
+.kpi-card.settlement-card {
+  background: radial-gradient(circle at 100% 0%, rgba(101, 255, 59, 0.12) 0%, var(--bg-surface) 75%);
+  border: 1px solid rgba(101, 255, 59, 0.35);
+}
+
+.kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.kpi-badge {
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badge-p1 {
+  background: var(--p1-pill-bg);
+  color: var(--p1-pill-text);
+}
+
+.badge-p2 {
+  background: var(--p2-pill-bg);
+  color: var(--p2-pill-text);
+}
+
+.kpi-value {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kpi-sub strong {
+  color: var(--text-main);
+}
+
+/* Barra visual de proporção */
+.split-progress-bar {
+  height: 7px;
+  background: var(--p2-color);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  display: flex;
+  margin-top: 4px;
+}
+
+.split-progress-fill-p1 {
+  background: var(--p1-color);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* ==========================================================================
+   FORMULÁRIO DE LANÇAMENTO RÁPIDO
+   ========================================================================== */
+.quick-entry-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.quick-entry-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-main);
+}
+
+.quick-entry-form {
+  display: grid;
+  grid-template-columns: 130px 1.6fr 155px 130px 145px 185px auto auto;
+  gap: 10px;
+  align-items: end;
+}
+
+@media (max-width: 1280px) {
+  .quick-entry-form {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-field label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.form-field input,
+.form-field select {
+  padding: 9px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-main);
+  font-size: 13px;
+  font-family: inherit;
+  width: 100%;
+  color-scheme: dark;
+  transition: border-color 0.15s;
+}
+
+[data-theme="light"] .form-field input,
+[data-theme="light"] .form-field select {
+  color-scheme: light;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--bg-surface);
+}
+
+.custom-pct-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.custom-pct-group input {
+  width: 68px;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   WORKSPACE DA PLANILHA & ABAS ESTILO DOCK DE PÍLULAS
+   ========================================================================== */
+.sheet-workspace {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet-tabs-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-color);
+  padding: 10px 14px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.sheet-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 15px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s;
+}
+
+.sheet-tab:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.sheet-tab.active {
+  background: #ffffff;
+  color: #050507;
+  border-color: #ffffff;
+  font-weight: 700;
+}
+
+[data-theme="light"] .sheet-tab.active {
+  background: #09090b;
+  color: #ffffff;
+  border-color: #09090b;
+}
+
+.sheet-tab .tab-count {
+  font-size: 10.5px;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+}
+
+.sheet-tab.active .tab-count {
+  background: rgba(5, 5, 7, 0.14);
+  color: #050507;
+}
+
+[data-theme="light"] .sheet-tab.active .tab-count {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.sheet-tab-add {
+  padding: 7px 13px;
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--border-strong);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.sheet-tab-add:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Barra de Ferramentas Interna da Aba */
+.sheet-toolbar {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--bg-surface);
+}
+
+.sheet-toolbar-left,
+.sheet-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  padding: 8px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  color: var(--text-main);
+  font-size: 13px;
+  min-width: 240px;
+}
+
+.search-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  color: var(--text-main);
+  font-size: 12.5px;
+  color-scheme: dark;
+}
+
+[data-theme="light"] .filter-select {
+  color-scheme: light;
+}
+
+/* Banner de Categoria */
+.category-sheet-banner {
+  padding: 16px 20px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.cat-banner-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cat-banner-icon {
+  font-size: 26px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cat-banner-stats {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+.cat-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cat-stat-item span {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.cat-stat-item strong {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+/* ==========================================================================
+   TABELA INTELIGENTE ESTILO PLANILHA DARK FINTECH
+   ========================================================================== */
+.spreadsheet-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.spreadsheet-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.spreadsheet-table th {
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border-strong);
+  border-right: 1px solid var(--border-color);
+  text-align: left;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.spreadsheet-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.spreadsheet-table tbody tr {
+  transition: background-color 0.12s;
+}
+
+.spreadsheet-table tbody tr:hover {
+  background-color: var(--bg-hover);
+}
+
+.row-num {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  width: 38px;
+  background: var(--bg-elevated);
+}
+
+/* Inputs dentro das células da planilha */
+.cell-input,
+.cell-select {
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 5px 7px;
+  border-radius: 8px;
+  color-scheme: dark;
+}
+
+[data-theme="light"] .cell-input,
+[data-theme="light"] .cell-select {
+  color-scheme: light;
+}
+
+.cell-select option {
+  background: var(--bg-surface);
+  color: var(--text-main);
+}
+
+.cell-input:hover,
+.cell-select:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-elevated);
+}
+
+.cell-input:focus,
+.cell-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--bg-elevated);
+  box-shadow: 0 0 0 2px rgba(101, 255, 59, 0.18);
+}
+
+.cell-currency {
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell-share-p1 {
+  background: var(--p1-bg);
+  color: var(--p1-color);
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cell-share-p2 {
+  background: var(--p2-bg);
+  color: var(--p2-color);
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.share-pct-pill {
+  font-size: 10.5px;
+  font-weight: 600;
+  opacity: 0.85;
+  margin-left: 4px;
+}
+
+.spreadsheet-table tfoot td {
+  background: var(--bg-elevated);
+  font-weight: 800;
+  padding: 12px 10px;
+  border-top: 1px solid var(--border-strong);
+  font-size: 13.5px;
+}
+
+/* Dashboard e Agente IA */
+.dashboard-view {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.dashboard-grid-2 {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 18px;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dash-panel {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  background: var(--bg-elevated);
+}
+
+.dash-panel h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.budget-bar-wrap {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-hover);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.budget-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width 0.25s ease;
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.modal-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  max-width: 520px;
+  width: 100%;
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 36px 20px;
+  color: var(--text-secondary);
+}
+
+.settlement-explain-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  background: var(--bg-surface);
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.settlement-explain-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

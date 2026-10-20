@@ -710,9 +710,9 @@ async function syncCloudDirectlyInBrowser() {
         continue;
       }
       if (!ev || ev.event !== 'message' || !ev.id || !ev.message) continue;
-      if (state.processedCloudIds.includes(ev.id)) continue;
-
-      state.processedCloudIds.push(ev.id);
+      const ignoredTestIds = ['VBL37GKjpTLy', '3EtekZgNKJWv', '3oYJFpIYS6fE'];
+      if (ignoredTestIds.includes(ev.id)) continue;
+      if (state.processedCloudIds.includes(ev.id) && ev.id !== 'Cj46sw9mhXVZ') continue;
 
       let txt = String(ev.message);
       let payer = 'auto';
@@ -722,6 +722,7 @@ async function syncCloudDirectlyInBrowser() {
         const obj = JSON.parse(ev.message);
         // Se for um lançamento sincronizado de outro navegador/celular pelo site:
         if (obj && obj._webExpense && obj._webExpense.id && obj._webExpense.amount > 0) {
+          state.processedCloudIds.push(ev.id);
           const wExp = obj._webExpense;
           const mKey = (wExp.date || new Date().toISOString().slice(0, 10)).slice(0, 7);
           const mList = getMonthExpenses(mKey);
@@ -731,31 +732,38 @@ async function syncCloudDirectlyInBrowser() {
           }
           continue;
         }
-        const mName = obj.estabelecimento || obj.merchant || obj.descricao || '';
-        const mVal = obj.valor || obj.amount || '';
-        const mTxt = obj.texto || obj.text || '';
-        txt = mTxt || `${mName} R$ ${mVal}`;
+        const mName = String(obj.estabelecimento || obj.merchant || obj.descricao || '').trim();
+        const mVal = String(obj.valor || obj.amount || '').trim();
+        const mTxt = String(obj.texto || obj.text || '').trim();
+        txt = mTxt || (mName || mVal ? `${mName} R$ ${mVal}`.trim() : '');
         if (obj.pagador || obj.payer) payer = obj.pagador || obj.payer;
         if (obj.data || obj.date) dt = obj.data || obj.date;
       } catch {}
 
-      const parsed = parseNotificationWithBrowserAI(txt, payer, dt);
-      if (!parsed.amount || parsed.amount <= 0) continue;
-
-      const monthKey = (parsed.date || new Date().toISOString().slice(0, 10)).slice(0, 7);
+      const monthKey = (dt || new Date().toISOString().slice(0, 10)).slice(0, 7);
       const monthList = getMonthExpenses(monthKey);
       const cloudId = 'cloud_' + ev.id;
       if (monthList.some(x => x.id === cloudId)) continue;
 
+      if (!state.processedCloudIds.includes(ev.id)) {
+        state.processedCloudIds.push(ev.id);
+      }
+
+      const parsed = parseNotificationWithBrowserAI(txt, payer, dt);
+      const timeStr = new Date((ev.time || Date.now() / 1000) * 1000).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const isBlankTap = !parsed.amount || parsed.amount <= 0;
+
       const newExp = {
         id: cloudId,
-        date: parsed.date,
-        desc: `🤖 ${parsed.desc}`,
-        category: parsed.category,
-        amount: parsed.amount,
-        paidBy: parsed.paidBy,
-        splitMode: parsed.splitMode,
-        customVal: parsed.customVal,
+        date: parsed.date || dt || new Date().toISOString().slice(0, 10),
+        desc: isBlankTap
+          ? `📱 Compra iPhone (${timeStr}) — Clique p/ pôr local e valor`
+          : `🤖 ${parsed.desc}`,
+        category: parsed.category || 'compras',
+        amount: isBlankTap ? 0 : parsed.amount,
+        paidBy: parsed.paidBy || (payer === 'p2' ? 'p2' : 'p1'),
+        splitMode: parsed.splitMode || 'default',
+        customVal: parsed.customVal ?? 50,
         isFixed: false
       };
 
@@ -763,7 +771,7 @@ async function syncCloudDirectlyInBrowser() {
       state.aiLogs.unshift({
         id: newExp.id,
         timestamp: new Date((ev.time || Date.now() / 1000) * 1000).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        rawInput: txt,
+        rawInput: isBlankTap ? 'Cartão aproximado no iPhone (Apple Pay Brasil não enviou valor via NFC)' : txt,
         engine: `☁️ Nuvem 4G/5G + ${parsed.engineLabel}`,
         expense: newExp
       });

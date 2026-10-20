@@ -550,17 +550,29 @@ function parseNotificationWithBrowserAI(rawText, explicitPayer, explicitDate) {
   const p1Name = (state.couple.p1Name || 'André').toLowerCase();
   const p2Name = (state.couple.p2Name || 'Esposa').toLowerCase();
 
-  // 0. Extrair Data (se estiver no texto como 18/10/2026 ou dia 17/10, ou usar o campo de data)
+  // 0. Extrair Data (suporta 19/10/2026, dia 19/10 e formato Carteira Apple "19 de outubro de 2026" ou "19 de out.")
   const now = new Date();
   const currentYear = now.getFullYear();
   let date = explicitDate || now.toISOString().slice(0, 10);
 
+  const monthMapPT = {
+    jan: '01', fev: '02', mar: '03', abr: '04', mai: '05', jun: '06',
+    jul: '07', ago: '08', set: '09', out: '10', nov: '11', dez: '12'
+  };
+
   const matchFullBR = text.match(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})\b/);
+  const matchExtensoPT = text.match(/\b(\d{1,2})\s+de\s+([a-zç]{3,10})\.?(?:\s+de\s+(\d{4}))?/i);
   if (matchFullBR) {
     const d = String(matchFullBR[1]).padStart(2, '0');
     const m = String(matchFullBR[2]).padStart(2, '0');
     let y = matchFullBR[3];
     if (y.length === 2) y = '20' + y;
+    date = `${y}-${m}-${d}`;
+  } else if (matchExtensoPT) {
+    const d = String(matchExtensoPT[1]).padStart(2, '0');
+    const mPrefix = matchExtensoPT[2].toLowerCase().slice(0, 3);
+    const m = monthMapPT[mPrefix] || String(now.getMonth() + 1).padStart(2, '0');
+    const y = matchExtensoPT[3] || String(currentYear);
     date = `${y}-${m}-${d}`;
   } else {
     const matchShortBR = text.match(/(?:em|dia|data)\s+(\d{1,2})\/(\d{1,2})\b/i);
@@ -573,6 +585,7 @@ function parseNotificationWithBrowserAI(rawText, explicitPayer, explicitDate) {
 
   const textNoDate = text
     .replace(/(?:\s+em|\s+dia)?\s+\b\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?\b/gi, '')
+    .replace(/\b\d{1,2}\s+de\s+[a-zç]{3,10}\.?(?:\s+de\s+\d{4})?(?:\s+às\s+\d{1,2}:\d{2})?/gi, '')
     .trim();
 
   // 1. Extrair Valor
@@ -588,18 +601,40 @@ function parseNotificationWithBrowserAI(rawText, explicitPayer, explicitDate) {
     amount = parseFloat(s) || 0;
   }
 
-  // 2. Extrair Nome do Estabelecimento
+  // 2. Extrair Nome do Estabelecimento (Suporte especial para Notificação da Carteira Apple / Banco do Brasil em múltiplas linhas)
   let desc = 'Compra no Cartão';
+  const rawLines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  if (rawLines.length >= 2) {
+    const priceIdx = rawLines.findIndex(l => /(?:R\$|BRL)\s*\d+/i.test(l));
+    if (priceIdx !== -1) {
+      const isNoiseLine = (s) => /^(?:claro|vivo|tim|oi\b|\d+%\s*carregado|central de notifica|banco do brasil|nubank|ita[uú]|bradesco|santander|inter|ourocard|cart[aã]o|visa|mastercard|elo|\d{1,2}:\d{2}|(?:seg|ter|qua|qui|sex|s[aá]b|dom)\b|santa rosa|avenida|registro dos)/i.test(s);
+      // Caso 1 (Banner da Central de Notificações: linha do estabelecimento fica exatamente acima do R$ 12,00)
+      if (priceIdx > 0 && !isNoiseLine(rawLines[priceIdx - 1])) {
+        desc = rawLines[priceIdx - 1].replace(/\.\s*[A-Za-zÀ-ú\s]+,\s*[A-Z]{2}$/, '').trim();
+      } else {
+        // Caso 2 (Card expandido da Carteira Apple: R$ 12,00 -> OUROCARD FACIL VISA -> Academia BodyFit - Filial)
+        for (let k = priceIdx + 1; k < Math.min(rawLines.length, priceIdx + 4); k++) {
+          if (!isNoiseLine(rawLines[k]) && !/\b\d{1,2}\s+de\s+[a-zç]+/i.test(rawLines[k])) {
+            desc = rawLines[k].trim();
+            break;
+          }
+        }
+      }
+    }
+  }
+
   const patterns = [
     /(?:em|no estabelecimento|para)\s+([A-Z0-9À-Ú*.\-\s]{3,40}?)(?:\s+(?:às|as|em|dia|no valor|em \d+x|usando|cartão|cartao|final|\.|,|$))/i,
     /compra\s+(?:aprovada|confirmada).*?(?:R\$\s*[\d.,]+)\s+(?:em|no|na)\s+([^\n.,;]+)/i,
     /(?:R\$\s*[\d.,]+)\s+(?:em|no|na|-)\s+([^\n.,;]+)/i
   ];
-  for (const pat of patterns) {
-    const m = textNoDate.match(pat);
-    if (m && m[1]) {
-      desc = m[1].trim();
-      break;
+  if (desc === 'Compra no Cartão') {
+    for (const pat of patterns) {
+      const m = textNoDate.match(pat);
+      if (m && m[1]) {
+        desc = m[1].trim();
+        break;
+      }
     }
   }
   if (desc === 'Compra no Cartão') {
@@ -710,9 +745,9 @@ async function syncCloudDirectlyInBrowser() {
         continue;
       }
       if (!ev || ev.event !== 'message' || !ev.id || !ev.message) continue;
-      const ignoredTestIds = ['VBL37GKjpTLy', '3EtekZgNKJWv', '3oYJFpIYS6fE'];
+      const ignoredTestIds = ['VBL37GKjpTLy', '3EtekZgNKJWv', '3oYJFpIYS6fE', 'Cj46sw9mhXVZ'];
       if (ignoredTestIds.includes(ev.id)) continue;
-      if (state.processedCloudIds.includes(ev.id) && ev.id !== 'Cj46sw9mhXVZ') continue;
+      if (state.processedCloudIds.includes(ev.id)) continue;
 
       let txt = String(ev.message);
       let payer = 'auto';

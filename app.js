@@ -770,7 +770,7 @@ async function syncCloudDirectlyInBrowser() {
         const mName = String(obj.estabelecimento || obj.merchant || obj.descricao || '').trim();
         const mVal = String(obj.valor || obj.amount || '').trim();
         const mTxt = String(obj.texto || obj.text || '').trim();
-        txt = mTxt || (mName || mVal ? `${mName} R$ ${mVal}`.trim() : '');
+        txt = mTxt || (mVal ? `${mName} R$ ${mVal}`.trim() : mName);
         if (obj.pagador || obj.payer) payer = obj.pagador || obj.payer;
         if (obj.data || obj.date) dt = obj.data || obj.date;
       } catch {}

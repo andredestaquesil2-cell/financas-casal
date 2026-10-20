@@ -267,58 +267,223 @@ let state = {
 
 let serverConnected = false;
 const DEFAULT_CLOUD_TOPIC = 'casal_gastos_andre_esposa_8492a7';
+const CLOUD_DB_TOPIC = 'casal_gastos_db_sync_8492a7';
+const CLIENT_INSTANCE_ID = 'cli_' + Math.random().toString(36).slice(2, 9);
 let serverWebhookUrl = `https://ntfy.sh/${DEFAULT_CLOUD_TOPIC}`;
+let cloudPushTimer = null;
 
-// Carregar do localStorage e sincronizar com Servidor Node (se ativo)
+function setCloudBadgeStatus(text, isSaving = false) {
+  const el = document.getElementById('cloudSyncStatusBadge');
+  if (!el) return;
+  el.textContent = text;
+  el.style.opacity = isSaving ? '0.8' : '1';
+}
+
+function packCloudState(st) {
+  const compactMonths = {};
+  Object.keys(st.expensesByMonth || {}).forEach(mKey => {
+    const arr = st.expensesByMonth[mKey];
+    if (Array.isArray(arr)) {
+      compactMonths[mKey] = arr.map(x => [
+        x.id,
+        x.date,
+        stripBankAndNotificationNoise(x.desc),
+        x.category,
+        Number(x.amount) || 0,
+        x.paidBy,
+        x.splitMode,
+        Number(x.customVal) || 0,
+        x.isFixed ? 1 : 0
+      ]);
+    }
+  });
+
+  return {
+    _type: 'db_sync_v1',
+    rev: st.lastUpdated || Date.now(),
+    cid: CLIENT_INSTANCE_ID,
+    cm: st.currentMonth,
+    cp: st.couple,
+    ai: {
+      c1: st.aiConfig?.cardDigitsP1 || '',
+      c2: st.aiConfig?.cardDigitsP2 || '',
+      rules: st.aiConfig?.customRules || []
+    },
+    cats: (st.categories || []).map(c => [c.id, c.name, c.icon, c.budget, c.defaultSplit]),
+    exp: compactMonths,
+    pids: (st.processedCloudIds || []).slice(-80)
+  };
+}
+
+function unpackCloudState(packed) {
+  if (!packed || packed._type !== 'db_sync_v1') return null;
+  const expensesByMonth = {};
+  Object.keys(packed.exp || {}).forEach(mKey => {
+    const arr = packed.exp[mKey];
+    if (Array.isArray(arr)) {
+      expensesByMonth[mKey] = arr.map(row => ({
+        id: row[0],
+        date: row[1],
+        desc: stripBankAndNotificationNoise(row[2]),
+        category: row[3],
+        amount: Number(row[4]) || 0,
+        paidBy: row[5] || 'p1',
+        splitMode: row[6] || 'default',
+        customVal: Number(row[7]) || 0,
+        isFixed: Boolean(row[8])
+      }));
+    }
+  });
+
+  const categories = Array.isArray(packed.cats) && packed.cats.length
+    ? packed.cats.map(c => {
+        const def = DEFAULT_CATEGORIES.find(d => d.id === c[0]);
+        return {
+          id: c[0],
+          name: c[1],
+          icon: c[2],
+          budget: Number(c[3]) || 0,
+          defaultSplit: c[4] || 'default',
+          desc: def ? def.desc : `Planilha exclusiva para gastos de ${c[1]}`
+        };
+      })
+    : JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+
+  return {
+    lastUpdated: packed.rev || Date.now(),
+    currentMonth: packed.cm || state.currentMonth,
+    couple: packed.cp || state.couple,
+    aiConfig: {
+      ...state.aiConfig,
+      cardDigitsP1: packed.ai?.c1 ?? state.aiConfig.cardDigitsP1,
+      cardDigitsP2: packed.ai?.c2 ?? state.aiConfig.cardDigitsP2,
+      customRules: packed.ai?.rules || state.aiConfig.customRules
+    },
+    categories,
+    expensesByMonth,
+    processedCloudIds: Array.isArray(packed.pids) ? packed.pids : []
+  };
+}
+
+async function pushStateToCloudDB() {
+  try {
+    setCloudBadgeStatus('⏳ Salvando na nuvem...', true);
+    const payload = JSON.stringify(packCloudState(state));
+    await fetch(`https://ntfy.sh/${CLOUD_DB_TOPIC}`, {
+      method: 'POST',
+      body: payload
+    });
+    setCloudBadgeStatus('☁️ Salvo em Todos os Aparelhos');
+  } catch (e) {
+    setCloudBadgeStatus('☁️ Modo Offline Local');
+  }
+}
+
+async function pullLatestStateFromCloudDB() {
+  try {
+    const res = await fetch(`https://ntfy.sh/${CLOUD_DB_TOPIC}/json?poll=1&since=all`);
+    if (!res.ok) return false;
+    const raw = await res.text();
+    const lines = raw.split(/\r?\n/).filter(Boolean);
+    let newestPacked = null;
+
+    for (let i = lines.length - 1; i >= 0; i--) {
+      try {
+        const ev = JSON.parse(lines[i]);
+        if (!ev || ev.event !== 'message') continue;
+        let msgStr = ev.message;
+        if (ev.attachment && ev.attachment.url) {
+          const attRes = await fetch(ev.attachment.url);
+          if (attRes.ok) msgStr = await attRes.text();
+        }
+        if (!msgStr) continue;
+        const parsedMsg = JSON.parse(msgStr);
+        if (parsedMsg && parsedMsg._type === 'db_sync_v1') {
+          newestPacked = parsedMsg;
+          break;
+        }
+      } catch {}
+    }
+
+    if (newestPacked) {
+      if (newestPacked.cid !== CLIENT_INSTANCE_ID && (newestPacked.rev || 0) > (state.lastUpdated || 0)) {
+        const unpacked = unpackCloudState(newestPacked);
+        if (unpacked) {
+          mergeState(unpacked);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          setCloudBadgeStatus('☁️ Sincronizado em Tempo Real');
+          return true;
+        }
+      }
+      return false;
+    } else {
+      // Ainda não havia banco na nuvem; publica o estado atual para inicializar todos os aparelhos
+      await pushStateToCloudDB();
+      return false;
+    }
+  } catch (e) {
+    return false;
+  }
+}
+
+function startRealtimeCloudStream() {
+  if (typeof EventSource === 'undefined') return;
+  try {
+    // 1. Stream em tempo real das edições feitas no PC ou no iPhone
+    const dbEs = new EventSource(`https://ntfy.sh/${CLOUD_DB_TOPIC}/sse`);
+    dbEs.onmessage = async (event) => {
+      try {
+        const ev = JSON.parse(event.data);
+        if (!ev || ev.event !== 'message') return;
+        let msgStr = ev.message;
+        if (ev.attachment && ev.attachment.url) {
+          const attRes = await fetch(ev.attachment.url);
+          if (attRes.ok) msgStr = await attRes.text();
+        }
+        if (!msgStr) return;
+        const packed = JSON.parse(msgStr);
+        if (packed && packed._type === 'db_sync_v1' && packed.cid !== CLIENT_INSTANCE_ID) {
+          if ((packed.rev || 0) > (state.lastUpdated || 0)) {
+            const unpacked = unpackCloudState(packed);
+            if (unpacked) {
+              mergeState(unpacked);
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+              setCloudBadgeStatus('☁️ Atualizado de outro aparelho');
+              renderAll();
+            }
+          }
+        }
+      } catch {}
+    };
+
+    // 2. Stream em tempo real de novas compras enviadas pelo Atalho do iPhone
+    const topic = state.aiConfig?.cloudTopic || DEFAULT_CLOUD_TOPIC;
+    const txEs = new EventSource(`https://ntfy.sh/${encodeURIComponent(topic)}/sse`);
+    txEs.onmessage = async () => {
+      await syncCloudDirectlyInBrowser();
+    };
+  } catch (e) {}
+}
+
+// Carregar do localStorage e sincronizar em tempo real com a Nuvem
 async function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       mergeState(parsed);
-      saveState();
     } else {
       const m = state.currentMonth;
       state.expensesByMonth[m] = createDemoExpenses(m);
-      saveState();
     }
   } catch (err) {
     console.error('Erro ao carregar dados locais:', err);
   }
 
-  // Tenta conectar ao servidor local (server.js) se estiver em localhost; se estiver no site online (GitHub Pages), sincroniza direto da nuvem!
-  const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname.startsWith('192.168.');
-  if (isLocalhost) {
-    try {
-      const statusRes = await fetch('/api/status');
-      if (statusRes.ok) {
-        const st = await statusRes.json();
-        serverConnected = true;
-        if (st.cloudWebhookUrl) serverWebhookUrl = st.cloudWebhookUrl;
-
-        const stateRes = await fetch('/api/state');
-        if (stateRes.ok) {
-          const sr = await stateRes.json();
-          if (sr.state && sr.state.expensesByMonth) {
-            mergeState(sr.state);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-          } else {
-            await fetch('/api/state', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ state })
-            });
-          }
-        }
-        renderAll();
-        return;
-      }
-    } catch (e) {}
-  }
-
-  // Hospedado na nuvem (GitHub Pages / HTTPS) ou aberto direto: sincroniza direto da fila ntfy.sh no navegador!
   serverConnected = false;
+  await pullLatestStateFromCloudDB();
   await syncCloudDirectlyInBrowser();
+  startRealtimeCloudStream();
 }
 
 function stripBankAndNotificationNoise(rawName) {
@@ -380,8 +545,9 @@ function mergeState(parsed) {
   };
 }
 
-function saveState() {
+function saveState(skipCloudPush = false) {
   try {
+    state.lastUpdated = Date.now();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     if (serverConnected) {
       fetch('/api/state', {
@@ -389,6 +555,13 @@ function saveState() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ state })
       }).catch(() => {});
+    }
+    if (!skipCloudPush) {
+      setCloudBadgeStatus('⏳ Salvando...', true);
+      if (cloudPushTimer) clearTimeout(cloudPushTimer);
+      cloudPushTimer = setTimeout(() => {
+        pushStateToCloudDB();
+      }, 450);
     }
   } catch (err) {
     console.error('Erro ao salvar dados locais:', err);
@@ -2436,21 +2609,12 @@ function initEvents() {
     reader.readAsText(file);
   });
 
-  // Sincronização em tempo real: se o iPhone enviar uma compra (na rua no 4G/5G ou em casa), atualiza a tela!
+  // Sincronização em tempo real: mantém PC e Celulares sincronizados!
   setInterval(async () => {
-    if (serverConnected) {
-      try {
-        const res = await fetch('/api/state');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.state && data.state.aiLogs && data.state.aiLogs.length !== (state.aiLogs || []).length) {
-            mergeState(data.state);
-            renderAll();
-          }
-        }
-      } catch (e) {}
-    } else {
-      await syncCloudDirectlyInBrowser();
+    await syncCloudDirectlyInBrowser();
+    const updatedFromCloud = await pullLatestStateFromCloudDB();
+    if (updatedFromCloud) {
+      renderAll();
     }
   }, 5000);
 }

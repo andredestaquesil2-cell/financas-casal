@@ -1463,3 +1463,616 @@ body {
   justify-content: space-between;
   align-items: center;
 }
+
+/* ==========================================================================
+   OTIMIZAÇÃO MOBILE CLEAN & COMPACTA (iPhone / Smartphones <= 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* 1. Cabeçalho compacto (sem virar círculo gigante flutuante na tela) */
+  .app-header {
+    position: relative;
+    top: 0;
+    width: calc(100% - 20px);
+    margin: 8px auto 0;
+    padding: 10px 12px;
+    border-radius: 18px;
+    gap: 8px;
+  }
+
+  .brand-area {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .brand-icon {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+
+  .brand-title {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .brand-title h1 {
+    font-size: 15px;
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .brand-title p {
+    display: none;
+  }
+
+  .header-controls {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    gap: 6px;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .header-controls::-webkit-scrollbar {
+    display: none;
+  }
+
+  .header-controls .btn,
+  .month-picker-group {
+    flex-shrink: 0;
+    padding: 6px 10px;
+    font-size: 11.5px;
+  }
+
+  .month-picker-group input[type="month"] {
+    font-size: 11.5px;
+  }
+
+  /* 2. Hierarquia Visual Inteligente no Celular (Resumo e Gastos no Topo!) */
+  .main-container {
+    padding: 10px 10px 36px;
+    gap: 12px;
+  }
+
+  .kpi-grid {
+    order: 1;
+  }
+
+  .pierre-showcase-grid {
+    order: 2;
+  }
+
+  .sheet-workspace {
+    order: 3;
+  }
+
+  .quick-entry-card {
+    order: 4;
+  }
+
+  .couple-config-bar {
+    order: 5;
+  }
+
+  /* 3. KPI Bento Grid 2x2 Clean (André e Nathália lado a lado!) */
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .kpi-card {
+    padding: 13px 14px;
+    border-radius: 16px;
+    gap: 6px;
+  }
+
+  .kpi-card:nth-child(1) {
+    grid-column: 1 / -1;
+  }
+
+  .kpi-card:nth-child(2),
+  .kpi-card:nth-child(3) {
+    grid-column: span 1;
+  }
+
+  .kpi-card:nth-child(4) {
+    grid-column: 1 / -1;
+  }
+
+  .kpi-top {
+    font-size: 11px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .kpi-badge {
+    font-size: 10px;
+    padding: 2px 7px;
+  }
+
+  .kpi-value {
+    font-size: 19px;
+  }
+
+  .kpi-card:nth-child(1) .kpi-value {
+    font-size: 24px;
+  }
+
+  .kpi-sub {
+    font-size: 11px;
+    gap: 3px;
+  }
+
+  /* 4. Vitrine Pierre Finance Clean no Mobile */
+  .pierre-showcase-grid {
+    gap: 10px;
+  }
+
+  .pierre-col-panel {
+    padding: 14px;
+    border-radius: 18px;
+    gap: 10px;
+  }
+
+  .pierre-tx-list {
+    gap: 8px;
+  }
+
+  .pierre-tx-card,
+  .pierre-tx-card:nth-child(2) {
+    margin-left: 0 !important;
+    padding: 11px 12px;
+    border-radius: 14px;
+    gap: 10px;
+  }
+
+  .pierre-tx-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  .pierre-tx-title {
+    font-size: 13.5px;
+    white-space: normal;
+    line-height: 1.25;
+  }
+
+  .pierre-tx-sub {
+    font-size: 11px;
+  }
+
+  .pierre-tx-amount {
+    font-size: 14px;
+  }
+
+  .pierre-mascot-wrap {
+    padding: 2px 0;
+    gap: 4px;
+  }
+
+  .pierre-cat-svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .pierre-greeting-title {
+    font-size: 17px;
+  }
+
+  .pierre-greeting-sub {
+    font-size: 11.5px;
+  }
+
+  .pierre-quick-chips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .pierre-chip-btn {
+    padding: 8px 10px;
+    font-size: 11.5px;
+    justify-content: center;
+    text-align: center;
+    border-radius: 12px;
+  }
+
+  .pierre-chat-box {
+    padding: 10px 12px;
+    border-radius: 14px;
+    gap: 6px;
+  }
+
+  .pierre-chat-input {
+    font-size: 13.5px;
+  }
+
+  .pierre-chart-big-val {
+    font-size: 21px;
+  }
+
+  .pierre-bars-stage {
+    height: 115px;
+    padding: 8px 2px 2px;
+  }
+
+  /* 5. Abas e Planilha Transformada em Cards Mobile Clean (Zero Scroll Lateral) */
+  .sheet-workspace {
+    border-radius: 18px;
+  }
+
+  .sheet-tabs-bar {
+    padding: 8px 10px;
+    gap: 6px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sheet-tabs-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sheet-tab {
+    padding: 7px 11px;
+    font-size: 12px;
+  }
+
+  .category-sheet-banner {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .cat-banner-stats {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .sheet-toolbar {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .sheet-toolbar-left {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .search-input {
+    grid-column: 1 / -1;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .filter-select {
+    width: 100%;
+    min-width: 0;
+    font-size: 11.5px;
+    padding: 7px 8px;
+  }
+
+  .sheet-toolbar-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sheet-toolbar-right > span {
+    display: none;
+  }
+
+  /* Cards de Gastos na Planilha Principal no Celular */
+  #mainSpreadsheetTable,
+  #mainSpreadsheetTable tbody,
+  #mainSpreadsheetTable tfoot {
+    display: block;
+    width: 100%;
+  }
+
+  #mainSpreadsheetTable thead {
+    display: none;
+  }
+
+  #mainSpreadsheetTable tbody tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 8px;
+    padding: 12px;
+    margin: 10px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  #mainSpreadsheetTable tbody td {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: none;
+  }
+
+  /* Oculta colunas secundárias (#, Fixo?, % manual) no card mobile */
+  #mainSpreadsheetTable tbody td.row-num,
+  #mainSpreadsheetTable tbody td:nth-child(5),
+  #mainSpreadsheetTable tbody td:nth-child(9) {
+    display: none;
+  }
+
+  #mainSpreadsheetTable tbody td.empty-state {
+    grid-column: 1 / -1;
+    display: block;
+    padding: 24px 12px;
+  }
+
+  /* Linha 1 do Card: Estabelecimento (Esquerda) + Valor R$ (Direita) */
+  #mainSpreadsheetTable tbody td:nth-child(3) {
+    grid-column: 1 / 2;
+    order: 1;
+  }
+
+  #mainSpreadsheetTable tbody td:nth-child(3) .row-edit-desc {
+    font-size: 14px;
+    font-weight: 700;
+    padding: 4px 6px;
+    color: var(--text-main);
+  }
+
+  #mainSpreadsheetTable tbody td:nth-child(6) {
+    grid-column: 2 / 3;
+    order: 2;
+  }
+
+  #mainSpreadsheetTable tbody td:nth-child(6) .row-edit-amount {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--primary);
+    padding: 4px 6px;
+    text-align: right;
+  }
+
+  /* Linha 2 do Card: Categoria + Data */
+  #mainSpreadsheetTable tbody td:nth-child(4) {
+    grid-column: 1 / 2;
+    order: 3;
+  }
+
+  #mainSpreadsheetTable tbody td:nth-child(2) {
+    grid-column: 2 / 3;
+    order: 4;
+  }
+
+  /* Linha 3 do Card: Quem Pagou + Regra de Divisão */
+  #mainSpreadsheetTable tbody td:nth-child(7) {
+    grid-column: 1 / 2;
+    order: 5;
+  }
+
+  #mainSpreadsheetTable tbody td:nth-child(8) {
+    grid-column: 2 / 3;
+    order: 6;
+  }
+
+  #mainSpreadsheetTable tbody td:nth-child(2) .cell-input,
+  #mainSpreadsheetTable tbody td:nth-child(4) .cell-select,
+  #mainSpreadsheetTable tbody td:nth-child(7) .cell-select,
+  #mainSpreadsheetTable tbody td:nth-child(8) .cell-select {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    font-size: 11.5px;
+    padding: 6px 8px;
+    border-radius: 10px;
+  }
+
+  /* Linha 4 do Card: Parte Pessoa 1 + Parte Pessoa 2 lado a lado */
+  #mainSpreadsheetTable tbody td:nth-child(10),
+  #mainSpreadsheetTable tbody td:nth-child(11) {
+    order: 7;
+    border-radius: 10px;
+    padding: 6px 10px;
+    text-align: left;
+    font-size: 12.5px;
+  }
+
+  #mainSpreadsheetTable tbody td:nth-child(11) {
+    order: 8;
+  }
+
+  #mainSpreadsheetTable td.cell-share-p1::before,
+  #mainSpreadsheetTable td.cell-share-p2::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    opacity: 0.85;
+    margin-bottom: 2px;
+  }
+
+  /* Linha 5 do Card: Saldo do Item + Botão Excluir */
+  #mainSpreadsheetTable tbody td:nth-child(12) {
+    grid-column: 1 / 2;
+    order: 9;
+    display: flex;
+    align-items: center;
+    font-size: 11.5px;
+    padding-left: 4px;
+  }
+
+  #mainSpreadsheetTable tbody td:nth-child(13) {
+    grid-column: 2 / 3;
+    order: 10;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  /* Rodapé de Totais no Mobile */
+  #mainSpreadsheetTable tfoot tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 12px;
+    margin: 10px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+  }
+
+  #mainSpreadsheetTable tfoot td {
+    border: none;
+    padding: 6px 8px;
+    border-radius: 10px;
+    font-size: 12.5px;
+  }
+
+  #mainSpreadsheetTable tfoot td:nth-child(1) {
+    grid-column: 1 / 2;
+    text-align: left !important;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+  }
+
+  #mainSpreadsheetTable tfoot td:nth-child(2) {
+    grid-column: 2 / 3;
+    font-size: 15px;
+    color: var(--primary);
+  }
+
+  #mainSpreadsheetTable tfoot td:nth-child(3) {
+    display: none;
+  }
+
+  #mainSpreadsheetTable tfoot td:nth-child(4),
+  #mainSpreadsheetTable tfoot td:nth-child(5) {
+    text-align: left;
+  }
+
+  #mainSpreadsheetTable tfoot td:nth-child(6) {
+    grid-column: 1 / -1;
+    text-align: center;
+    background: var(--bg-surface);
+  }
+
+  /* 6. Formulário de Lançamento Rápido Compacto em 2 Colunas */
+  .quick-entry-card {
+    padding: 14px;
+    border-radius: 18px;
+    gap: 10px;
+  }
+
+  .quick-entry-title {
+    font-size: 13px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .quick-entry-title small {
+    display: none;
+  }
+
+  .quick-entry-form {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .quick-entry-form .form-field:nth-child(2) {
+    grid-column: 1 / -1;
+    order: 1;
+  }
+
+  .quick-entry-form .form-field:nth-child(4) {
+    order: 2;
+  }
+
+  .quick-entry-form .form-field:nth-child(1) {
+    order: 3;
+  }
+
+  .quick-entry-form .form-field:nth-child(3) {
+    order: 4;
+  }
+
+  .quick-entry-form .form-field:nth-child(5) {
+    order: 5;
+  }
+
+  .quick-entry-form .form-field:nth-child(6) {
+    order: 6;
+  }
+
+  .quick-entry-form .form-field:nth-child(7) {
+    order: 7;
+  }
+
+  .quick-entry-form .form-field:nth-child(8) {
+    order: 8;
+  }
+
+  .quick-entry-form .form-field:nth-child(9) {
+    grid-column: 1 / -1;
+    order: 9;
+  }
+
+  /* 7. Barra de Configuração do Casal Compacta em 2 Colunas */
+  .couple-config-bar {
+    padding: 12px;
+    gap: 8px;
+    grid-template-columns: 1fr 1fr;
+    border-radius: 18px;
+  }
+
+  .person-card {
+    padding: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    border-radius: 14px;
+  }
+
+  .person-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .person-inputs {
+    width: 100%;
+    gap: 6px;
+  }
+
+  .row-inline {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .row-inline label {
+    width: auto;
+    font-size: 10.5px;
+  }
+
+  .input-inline {
+    width: 100%;
+    font-size: 12.5px;
+    padding: 5px 8px;
+  }
+
+  .default-split-box {
+    grid-column: 1 / -1;
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+}

@@ -1769,11 +1769,11 @@ function renderSpreadsheetView() {
             <span style="font-size:11px; color:var(--text-secondary);">%</span>
           </div>
         </td>
-        <td class="cell-share-p1">
+        <td class="cell-share-p1" data-label="Parte ${escapeHtml(p1Name)}">
           ${formatBRL(calc.shareP1)}
           <span class="share-pct-pill">(${calc.pctP1}%)</span>
         </td>
-        <td class="cell-share-p2">
+        <td class="cell-share-p2" data-label="Parte ${escapeHtml(p2Name)}">
           ${formatBRL(calc.shareP2)}
           <span class="share-pct-pill">(${calc.pctP2}%)</span>
         </td>
@@ -1802,8 +1802,8 @@ function renderSpreadsheetView() {
       <td colspan="5" style="text-align:right;">TOTAIS DESTA PLANILHA (${filtered.length} itens):</td>
       <td class="cell-currency">${formatBRL(sumTotal)}</td>
       <td colspan="3" style="text-align:right; color:var(--text-secondary); font-size:12px;">Divisão Acumulada:</td>
-      <td class="cell-share-p1">${formatBRL(sumP1)} <span class="share-pct-pill">(${totalPctP1}%)</span></td>
-      <td class="cell-share-p2">${formatBRL(sumP2)} <span class="share-pct-pill">(${totalPctP2}%)</span></td>
+      <td class="cell-share-p1" data-label="Total ${escapeHtml(p1Name)}">${formatBRL(sumP1)} <span class="share-pct-pill">(${totalPctP1}%)</span></td>
+      <td class="cell-share-p2" data-label="Total ${escapeHtml(p2Name)}">${formatBRL(sumP2)} <span class="share-pct-pill">(${totalPctP2}%)</span></td>
       <td colspan="2" style="color:var(--primary); font-size:12.5px;">${footNetText}</td>
     </tr>
   `;

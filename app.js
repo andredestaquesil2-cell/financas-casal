@@ -276,6 +276,7 @@ async function loadState() {
     if (raw) {
       const parsed = JSON.parse(raw);
       mergeState(parsed);
+      saveState();
     } else {
       const m = state.currentMonth;
       state.expensesByMonth[m] = createDemoExpenses(m);
@@ -320,8 +321,47 @@ async function loadState() {
   await syncCloudDirectlyInBrowser();
 }
 
+function stripBankAndNotificationNoise(rawName) {
+  let s = String(rawName || '')
+    .replace(/^🤖\s*/g, '')
+    .replace(/\b(?:33%|34%|\d+%)\s*carregado.*$/gi, '')
+    .replace(/\bcentral de notifica[cç][oõ]es\b/gi, '')
+    .replace(/\bh[aá]\s*\d+\s*(?:m|min|h|seg|s)\b/gi, '')
+    // Remove nomes de bancos do início ou isolados
+    .replace(/^(?:[\s,.:;-]*)(?:banco\s+do\s+brasil|bb\b|ourocard(?:\s+f[aá]cil)?(?:\s+visa|\s+mastercard|\s+elo)?|nubank|nu\s+pagamentos|ita[uú](?:\s+unibanco|\s+personnalit[eé])?|bradesco|santander|banco\s+inter|inter\b|c6(?:\s+bank)?|caixa(?:\s+econ[oô]mica)?|sicredi|sicoob|banrisul|unicred|btg(?:\s+pactual)?|xp\s+investimentos|picpay|mercado\s+pago|recargapay|neon\b|next\b|will\s+bank|safra|apple\s+pay|carteira|wallet|cart[aã]o(?:\s+final\s+\d+)?|visa\b|mastercard\b|elo\b)+[\s,.:;-]*/gi, '')
+    // Caso o nome do banco tenha ficado repetido antes do estabelecimento
+    .replace(/^(?:banco\s+do\s+brasil|ourocard(?:\s+f[aá]cil)?|nubank|ita[uú]|bradesco|santander|inter|c6\s*bank|sicredi|sicoob|banrisul|picpay)[\s,.:;-]+/gi, '')
+    // Remove sufixo de cidade/UF de notificações da Carteira (ex: ". Santa Rosa, RS")
+    .replace(/\.\s*[A-Za-zÀ-ú\s]{2,25},\s*[A-Z]{2}\b.*$/g, '')
+    .replace(/\b\d{1,2}\s+de\s+[a-zç]{3,10}\.?(?:\s+de\s+\d{4})?(?:\s+(?:às|as|s)\s*\d{1,2}:\d{2})?.*$/gi, '')
+    .replace(/(?:às|as|s)\s*\d{1,2}:\d{2}.*$/gi, '')
+    .replace(/^(?:IFD\*|IFOOD\s*\*)/i, 'iFood - ')
+    .replace(/^(?:UBER\s*\*)/i, 'Uber ')
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s,.:;-]+|[\s,.:;-]+$/g, '')
+    .trim();
+
+  return s || 'Compra no Cartão';
+}
+
 function mergeState(parsed) {
   const nextTheme = parsed.pierreThemeMigrated ? (parsed.theme || 'dark') : 'dark';
+  const expByMonth = parsed.expensesByMonth || {};
+
+  // Limpa retroativamente qualquer nome de banco do início das descrições já salvas
+  Object.keys(expByMonth).forEach(mKey => {
+    if (Array.isArray(expByMonth[mKey])) {
+      expByMonth[mKey] = expByMonth[mKey]
+        .filter(item => item && item.id !== 'cloud_Cj46sw9mhXVZ')
+        .map(item => {
+          if (item && item.desc && !item.desc.startsWith('📱')) {
+            return { ...item, desc: stripBankAndNotificationNoise(item.desc) };
+          }
+          return item;
+        });
+    }
+  });
+
   state = {
     ...state,
     ...parsed,
@@ -336,7 +376,7 @@ function mergeState(parsed) {
     processedCloudIds: Array.isArray(parsed.processedCloudIds) ? parsed.processedCloudIds : (state.processedCloudIds || []),
     aiLogs: Array.isArray(parsed.aiLogs) ? parsed.aiLogs : state.aiLogs,
     categories: parsed.categories && parsed.categories.length ? parsed.categories : DEFAULT_CATEGORIES,
-    expensesByMonth: parsed.expensesByMonth || {}
+    expensesByMonth: expByMonth
   };
 }
 
@@ -647,11 +687,7 @@ function parseNotificationWithBrowserAI(rawText, explicitPayer, explicitDate) {
     if (cleaned.length >= 2) desc = cleaned;
   }
 
-  desc = desc
-    .replace(/^(?:IFD\*|IFOOD\s*\*)/i, 'iFood - ')
-    .replace(/^(?:UBER\s*\*)/i, 'Uber ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  desc = stripBankAndNotificationNoise(desc);
 
   const lowerAll = `${desc} ${textNoDate}`.toLowerCase();
 
@@ -793,7 +829,7 @@ async function syncCloudDirectlyInBrowser() {
         date: parsed.date || dt || new Date().toISOString().slice(0, 10),
         desc: isBlankTap
           ? `📱 Compra iPhone (${timeStr}) — Clique p/ pôr local e valor`
-          : `🤖 ${parsed.desc}`,
+          : stripBankAndNotificationNoise(parsed.desc),
         category: parsed.category || 'compras',
         amount: isBlankTap ? 0 : parsed.amount,
         paidBy: parsed.paidBy || (payer === 'p2' ? 'p2' : 'p1'),
@@ -1375,7 +1411,7 @@ async function runAiNotificationCapture(rawText, payerSelection, explicitDate) {
   const newExp = {
     id: 'ai_' + Date.now(),
     date: dateStr,
-    desc: `🤖 ${parsed.desc}`,
+    desc: stripBankAndNotificationNoise(parsed.desc),
     category: parsed.category,
     amount: parsed.amount,
     paidBy: parsed.paidBy,
